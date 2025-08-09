@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession
+from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Ticket
 
 
 class ShowThemeSerializer(serializers.ModelSerializer):
@@ -64,3 +64,20 @@ class ShowSessionListSerializer(ShowSessionSerializer):
             "planetarium_dome_name",
             "planetarium_dome_capacity"
         )
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    show_session = ShowSessionListSerializer(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = ("id", "row", "seat", "show_session")
+
+
+class TicketCreateSerializer(serializers.ModelSerializer):
+    show_session = serializers.PrimaryKeyRelatedField(
+        queryset=ShowSession.objects.all()
+    )
+    class Meta:
+        model = Ticket
+        fields = ("id", "seat", "show_session")

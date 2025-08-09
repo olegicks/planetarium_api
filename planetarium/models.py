@@ -38,6 +38,9 @@ class ShowSession(models.Model):
     planetarium_dome = models.ForeignKey(PlanetariumDome, on_delete=models.CASCADE)
     show_time = models.DateTimeField()
 
+    class Meta:
+        ordering = ["-show_time"]
+        
     def __str__(self):
         return f"{self.astronomy_show.title} in {self.planetarium_dome.title}"
 

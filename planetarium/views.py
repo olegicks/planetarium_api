@@ -6,9 +6,9 @@ from rest_framework.mixins import (
 )
 from rest_framework.viewsets import GenericViewSet
 
-from planetarium.models import ShowTheme, AstronomyShow
+from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome
 from planetarium.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer, \
-    AstronomyShowDetailSerializer
+    AstronomyShowDetailSerializer, PlanetariumDomeSerializer
 
 
 class ShowThemeViewSet(
@@ -39,3 +39,10 @@ class AstronomyShowViewSet(
             return queryset.prefetch_related("themes")
         else:
             return queryset
+
+
+class PlanetariumDomeViewSet(
+    viewsets.ModelViewSet
+):
+    serializer_class = PlanetariumDomeSerializer
+    queryset = PlanetariumDome.objects.all()

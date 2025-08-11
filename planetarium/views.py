@@ -6,6 +6,7 @@ from rest_framework.mixins import (
     ListModelMixin
 )
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
@@ -83,11 +84,12 @@ class ReservationViewSet(
     queryset = Reservation.objects.all()
     pagination_class = ReservationPagination
     serializer_class = ReservationSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ('create', 'list'):
             return ReservationListSerializer
         return ReservationSerializer

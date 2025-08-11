@@ -55,8 +55,8 @@ class Reservation(models.Model):
 class Ticket(models.Model):
     row = models.IntegerField()
     seat = models.IntegerField()
-    show_session = models.ForeignKey(ShowSession, on_delete=models.CASCADE)
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE)
+    show_session = models.ForeignKey(ShowSession, on_delete=models.CASCADE, related_name="tickets")
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="tickets")
 
     def clean(self):
         for ticket_attr_value, ticket_attr_name, planetarium_dome_attr_name in [
@@ -64,7 +64,7 @@ class Ticket(models.Model):
             (self.seat, "seat", "seats_in_row"),
         ]:
             count_attrs = getattr(
-                self.show_session.cinema_hall, planetarium_dome_attr_name
+                self.show_session.planetarium_dome, planetarium_dome_attr_name
             )
             if not (1 <= ticket_attr_value <= count_attrs):
                 raise ValidationError(

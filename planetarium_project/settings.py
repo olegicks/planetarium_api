@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "planetarium",
     "debug_toolbar",
-    "user"
+    "user",
+    "rest_framework.authtoken"
 ]
 
 MIDDLEWARE = [

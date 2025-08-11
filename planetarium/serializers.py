@@ -81,7 +81,7 @@ class TicketCreateSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = Ticket
-        fields = ("id", "seat", "show_session")
+        fields = ("id", "row", "seat", "show_session")
 
 
 class ReservationSerializer(serializers.ModelSerializer):
@@ -93,19 +93,19 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 
 class ReservationListSerializer(serializers.ModelSerializer):
-    ticket = TicketCreateSerializer(many=True, write_only=True)
+    tickets = TicketCreateSerializer(many=True, write_only=True)
     tickets_info = TicketSerializer(source="tickets", many=True, read_only=True)
 
     class Meta:
         model = Reservation
-        fields = ("id", "ticket", "tickets_info", "created_at")
+        fields = ("id", "tickets", "tickets_info", "created_at")
 
     def create(self, validated_data):
-        tickets_data = validated_data.pop("tickets")
+        tickets_data = validated_data.pop("tickets", [])
         user = self.context["request"].user
 
         with transaction.atomic():
             reservation = Reservation.objects.create(user=user)
             for ticket_data in tickets_data:
                 Ticket.objects.create(reservation=reservation, **ticket_data)
-            return reservation
+        return reservation

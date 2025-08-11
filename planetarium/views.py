@@ -5,12 +5,13 @@ from rest_framework.mixins import (
     RetrieveModelMixin,
     ListModelMixin
 )
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
 
-from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession
+from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
 from planetarium.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer, \
     AstronomyShowDetailSerializer, PlanetariumDomeSerializer, ShowSessionDetailSerializer, ShowSessionSerializer, \
-    ShowSessionListSerializer
+    ShowSessionListSerializer, ReservationSerializer, ReservationListSerializer
 
 
 class ShowThemeViewSet(
@@ -66,3 +67,27 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return queryset.select_related("astronomy_show", "planetarium_dome")
         return queryset
+
+
+class ReservationPagination(
+    PageNumberPagination
+):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
+class ReservationViewSet(
+    viewsets.ModelViewSet
+):
+    queryset = Reservation.objects.all()
+    pagination_class = ReservationPagination
+    serializer_class = ReservationSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ReservationListSerializer
+        return ReservationSerializer

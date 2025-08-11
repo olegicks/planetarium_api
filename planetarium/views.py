@@ -1,4 +1,5 @@
 from django.template.defaulttags import querystring
+from django.db.models import Count, F
 from rest_framework import viewsets
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -39,10 +40,21 @@ class AstronomyShowViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        themes = self.request.query_params.get("themes")
+        title = self.request.query_params.get("title")
+
+        if themes:
+            themes_ids = [int(str_id) for str_id in themes.split(",") if str_id.isdigit()]
+            queryset = queryset.filter(themes__id__in=themes_ids)
+
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+
+
         if self.action in ['list', 'retrieve']:
             return queryset.prefetch_related("themes")
-        else:
-            return queryset
+        return queryset.distinct()
 
 
 class PlanetariumDomeViewSet(
@@ -65,6 +77,20 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        astronomy_show = self.request.query_params.get("astronomy_show")
+        date = self.request.query_params.get("date")
+
+        if astronomy_show:
+            queryset = queryset.filter(astronomy_show_id=astronomy_show)
+        if date:
+            queryset = queryset.filter(show_time__date=date)
+
+        if self.action == "list":
+            queryset = queryset.annotate(
+                tickets_available=F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row") - Count("tickets")
+            )
+
         if self.action in ['list', 'retrieve']:
             return queryset.select_related("astronomy_show", "planetarium_dome")
         return queryset

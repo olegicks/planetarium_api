@@ -137,3 +137,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
 }
+
+MEDIA_ROOT = BASE_DIR / "media"
+
+MEDIA_URL = "/media/"

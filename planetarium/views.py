@@ -1,7 +1,9 @@
 from django.template.defaulttags import querystring
 from django.db.models import Count, F
-from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin,
@@ -15,7 +17,7 @@ from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSe
 from planetarium.permissions import IsAdminOrIfAuthenticatedReadOnly
 from planetarium.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer, \
     AstronomyShowDetailSerializer, PlanetariumDomeSerializer, ShowSessionDetailSerializer, ShowSessionSerializer, \
-    ShowSessionListSerializer, ReservationSerializer, ReservationListSerializer
+    ShowSessionListSerializer, ReservationSerializer, ReservationListSerializer, AstronomyImageSerializer
 
 
 class ShowThemeViewSet(
@@ -44,7 +46,22 @@ class AstronomyShowViewSet(
             return AstronomyShowListSerializer
         elif self.action == 'retrieve':
             return AstronomyShowDetailSerializer
+        elif self.action == "upload_image":
+            return AstronomyImageSerializer
         return AstronomyShowSerializer
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_path="upload-image",
+    )
+    def upload_image(self, request, pk=None):
+        astronomy_show = self.get_object()
+        serializer = self.get_serializer(astronomy_show, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_queryset(self):
         queryset = super().get_queryset()

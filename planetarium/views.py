@@ -1,6 +1,7 @@
 from django.template.defaulttags import querystring
 from django.db.models import Count, F
 from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin,
@@ -11,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from planetarium.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
+from planetarium.permissions import IsAdminOrIfAuthenticatedReadOnly
 from planetarium.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer, \
     AstronomyShowDetailSerializer, PlanetariumDomeSerializer, ShowSessionDetailSerializer, ShowSessionSerializer, \
     ShowSessionListSerializer, ReservationSerializer, ReservationListSerializer
@@ -18,17 +20,23 @@ from planetarium.serializers import ShowThemeSerializer, AstronomyShowSerializer
 
 class ShowThemeViewSet(
     CreateModelMixin,
-    RetrieveModelMixin,
     ListModelMixin,
     GenericViewSet
 ):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
     serializer_class = ShowThemeSerializer
     queryset = ShowTheme.objects.all()
 
 
 class AstronomyShowViewSet(
-    viewsets.ModelViewSet
+    GenericViewSet,
+    CreateModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
 ):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
     queryset = AstronomyShow.objects.all()
 
     def get_serializer_class(self):
@@ -58,13 +66,20 @@ class AstronomyShowViewSet(
 
 
 class PlanetariumDomeViewSet(
-    viewsets.ModelViewSet
+    GenericViewSet,
+    CreateModelMixin,
+    ListModelMixin,
+
 ):
     serializer_class = PlanetariumDomeSerializer
     queryset = PlanetariumDome.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
     serializer_class = ShowSessionSerializer
     queryset = ShowSession.objects.all()
 
@@ -105,12 +120,15 @@ class ReservationPagination(
 
 
 class ReservationViewSet(
-    viewsets.ModelViewSet
+    GenericViewSet,
+    CreateModelMixin,
+    ListModelMixin,
 ):
     queryset = Reservation.objects.all()
     pagination_class = ReservationPagination
     serializer_class = ReservationSerializer
-    permission_classes = [IsAuthenticated]
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)

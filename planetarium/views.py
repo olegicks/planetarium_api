@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from django.template.defaulttags import querystring
 from django.db.models import Count, F
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication
@@ -81,6 +84,24 @@ class AstronomyShowViewSet(
             return queryset.prefetch_related("themes")
         return queryset.distinct()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "title",
+                type=str,
+                description="Filter by astronomy_show title",
+                required=False,
+            ),
+            OpenApiParameter(
+                "themes",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by astronomy_show themes",
+                required=False
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 class PlanetariumDomeViewSet(
     GenericViewSet,
@@ -126,6 +147,25 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return queryset.select_related("astronomy_show", "planetarium_dome")
         return queryset
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "data",
+                type=datetime,
+                description="Filter by show_session date",
+                required=False,
+            ),
+            OpenApiParameter(
+                "astronomy_show",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by show_session astronomy_show",
+                required=False
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class ReservationPagination(
